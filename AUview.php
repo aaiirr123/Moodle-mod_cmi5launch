@@ -270,7 +270,7 @@ if (!is_null($au->sessions)) {
     }
 }
 
-if ($au->sessions && count($au->sessions) > $initialVisibleAUCount)
+if ($au->sessions )
 {
     echo "<button id='toggleRowsButton' class='btn btn-secondary'>Show More</button>";
 }
