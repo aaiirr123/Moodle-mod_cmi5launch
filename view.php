@@ -71,6 +71,7 @@ $PAGE->set_url('/mod/cmi5launch/view.php', array('id' => $cm->id));
 $PAGE->set_title(format_string($cmi5launch->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($context);
+$PAGE->requires->css('/mod/cmi5launch/styles.css');
 $PAGE->requires->jquery();
 
 // Output starts here.
@@ -220,6 +221,7 @@ $cmid = $cmi5launch->id;
 $table = new html_table();
 $table->id = 'cmi5launch_autable';
 $table->caption = get_string('autableheader', 'cmi5launch');
+$table->attributes['class'] = 'generaltable cmi5launch-table au-table';
 $table->head = array(
     get_string('cmi5launchviewAUname', 'cmi5launch'),
     get_string('cmi5launchviewstatus', 'cmi5launch'),
@@ -405,7 +407,7 @@ try {
         //  $infofornextpage = $auid;
 
         // Assign au link to auviews.
-        $auinfo[] = "<button tabindex=\"0\" id='cmi5relaunch_attempt'
+        $auinfo[] = "<button class=\"btn btn-primary resume-btn\"  tabindex=\"0\" id='cmi5relaunch_attempt'
             onkeyup=\"key_test('" . $auid . "')\"
             onclick=\"mod_cmi5launch_launchexperience('" . $auid . "')\" style='cursor: pointer;'>"
             . get_string('cmi5launchviewlaunchlink', 'cmi5launch') . "</button>";

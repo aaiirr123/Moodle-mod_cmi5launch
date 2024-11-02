@@ -24,6 +24,7 @@
 use mod_cmi5launch\local\session_helpers;
 use mod_cmi5launch\local\customException;
 use mod_cmi5launch\local\au_helpers;
+use mod_cmi5launch\local\progress;
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require('header.php');
 require_once("$CFG->dirroot/lib/outputcomponents.php");
@@ -35,13 +36,15 @@ require_once ($CFG->dirroot . '/mod/cmi5launch/classes/local/errorover.php');
 
 require_login($course, false, $cm);
 
-global $cmi5launch, $USER;
+global $cmi5launch, $USER; 
 
 // Classes and functions.
 $auhelper = new au_helpers;
 $sessionhelper = new session_helpers;
 $retrievesession = $sessionhelper->cmi5launch_get_retrieve_sessions_from_db();
 $retrieveaus = $auhelper->get_cmi5launch_retrieve_aus_from_db();
+$progress = new progress;
+
 
 // MB - Not currently using events, but may in future.
 /*
@@ -62,6 +65,7 @@ $PAGE->set_title(format_string($cmi5launch->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($context);
 $PAGE->requires->jquery();
+$PAGE->requires->css('/mod/cmi5launch/styles.css');
 
 // Output starts here.
 echo $OUTPUT->header();
@@ -69,8 +73,8 @@ echo $OUTPUT->header();
 // Create the back button.
 ?>
 <form action="view.php" method="get">
-    <input id="id" name="id" type="hidden" value="<?php echo $id ?>">
-  <input type="submit" value="Back"/>
+    <input id="id" name="id" type="hidden" value="<?php echo $id; ?>">
+    <button type="submit" class="btn btn-primary resume-btn">Back</button>
 </form>
 <?php
 
@@ -79,6 +83,57 @@ echo $OUTPUT->header();
 ?>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('#cmi5launch_auSessionTable tbody tr');
+        const toggleButton = document.getElementById('toggleRowsButton');
+        const initialVisibleCount = 5;
+
+        // Show only the first 5 rows initially
+        for (let i = 0; i < initialVisibleCount && i < rows.length; i++) {
+            rows[i].classList.add('visible');
+        }
+
+        // Function to toggle rows and button text
+        function toggleRows() {
+            const isShowingMore = toggleButton.textContent === 'Show More';
+            if (isShowingMore) {
+                // Show all rows
+                rows.forEach(row => row.classList.add('visible'));
+                toggleButton.textContent = 'Show Less';
+            } else {
+                // Show only the first 5 rows
+                rows.forEach((row, index) => {
+                    if (index < initialVisibleCount) {
+                        row.classList.add('visible');
+                    } else {
+                        row.classList.remove('visible');
+                    }
+                });
+                toggleButton.textContent = 'Show More';
+            }
+        }
+
+        // Add click event to the button to toggle rows
+        toggleButton.addEventListener('click', toggleRows);
+     });
+
+        window.addEventListener("pageshow", function (event) {
+            // Check if the page was loaded from cache
+            if (event.persisted) {
+                window.location.reload(); // Reload the page to refresh data
+            }
+        });
+
+        function toggleProgress(progressCellId) {
+            const content = document.getElementById(progressCellId);
+            if (content.style.display === 'none' || content.style.display === '') {
+                content.style.display = 'block';
+                content.previousElementSibling.querySelector('button').textContent = 'Hide Progress';
+            } else {
+                content.style.display = 'none';
+                content.previousElementSibling.querySelector('button').textContent = 'View Progress';
+            }
+        }
 
         function key_test(registration) {
 
@@ -87,13 +142,36 @@ echo $OUTPUT->header();
             }
         }
 
+        function resumeSession(auid) {
+            $('#launchform_registration').val(auid);
+            $('#launchform_restart').val(false);
+            $('#launchform').submit();
+        }
+
+        // Function to handle restarting the session.
+        function restartSession(auid) {
+            // Add logic if needed to reset the session data here
+            $('#launchform_registration').val(auid);
+            $('#launchform_restart').val(true);
+            $('#launchform').submit();
+        }
+
         // Function to run when the experience is launched.
         function mod_cmi5launch_launchexperience(registration) {
+            
             // Set the form paramters.
             $('#launchform_registration').val(registration);
             // Post it.
             $('#launchform').submit();
         }
+
+        // // Function to run when the experience is launched.
+        // function mod_cmi5launch_abandon(registration) {
+        //     $progress->
+        //     $statements = $progress.cmi5launch_send_request_to_lrs('cmi5launch_stream_and_send', $data, $session->id);
+        // }
+
+
 
         // TODO: there may be a better way to check completion. Out of scope for current project.
         $(document).ready(function() {
@@ -125,103 +203,110 @@ $record = $DB->get_record('cmi5launch', array('id' => $cmi5launch->id));
 $userscourse = $DB->get_record('cmi5launch_usercourse', ['courseid'  => $record->courseid, 'userid'  => $USER->id]);
 
 // If it is null there have been no previous sessions.
-if (!$au->sessions == null) {
-
-    try{
-
-        // Set error and exception handler to catch and override the default PHP error messages, to make messages more user friendly.
+if (!is_null($au->sessions)) {
+    try {
+        // Set custom error and exception handlers
         set_error_handler('mod_cmi5launch\local\custom_warningAU', E_WARNING);
         set_exception_handler('mod_cmi5launch\local\custom_warningAU');
 
-        // Array to hold info for table population.
-        $tabledata = array();
+       // Set custom error and exception handlers
+       set_error_handler('mod_cmi5launch\local\custom_warningAU', E_WARNING);
+       set_exception_handler('mod_cmi5launch\local\custom_warningAU');
 
-        // Build table.
-        $table = new html_table();
-        $table->id = 'cmi5launch_auSessionTable';
-        $table->caption = get_string('modulenameplural', 'cmi5launch');
-        $table->head = array(
-        get_string('cmi5launchviewfirstlaunched', 'cmi5launch'),
-        get_string('cmi5launchviewlastlaunched', 'cmi5launch'),
-        get_string('cmi5launchviewprogress', 'cmi5launch'),
-        get_string('cmi5launchviewgradeheader', 'cmi5launch'),
-        );
+       // Prepare table structure
+       $tabledata = array();
+       $table = new html_table();
+       $table->id = 'cmi5launch_auSessionTable';
+       $table->attributes['class'] = 'generaltable cmi5launch-table launch-table';
+       $table->caption = get_string('modulenameplural', 'cmi5launch');
+       $table->head = array(
+           get_string('cmi5launchviewfirstlaunched', 'cmi5launch'),
+           get_string('cmi5launchviewprogress', 'cmi5launch'),
+           get_string('cmi5launchviewgradeheader', 'cmi5launch'),
+       );
+       $table->colclasses = array('', 'progress-column', '');
 
 
-        // Retrieve session ids.
-        $sessionids = json_decode($au->sessions);
+       // Decode and iterate through session IDs
+       $sessionids = json_decode($au->sessions);
+       $sessionids = array_reverse($sessionids);
+       foreach ($sessionids as $sessionid) {
+           $session = $DB->get_record('cmi5launch_sessions', ['sessionid' => $sessionid]);
 
-        // Iterate through each session by id.
-        foreach ($sessionids as $key => $sessionid) {
+           if ($session) {
+               $sessioninfo = [];
 
-            // Get the session from DB with session id.
-            $session = $DB->get_record('cmi5launch_sessions', array('sessionid' => $sessionid));
+               // Format and add session created date
+               if ($session->createdat) {
+                   $createdAt = new DateTime($session->createdat, new DateTimeZone('US/Eastern'));
+                   $createdAt->setTimezone(new DateTimeZone('America/New_York'));
+                   $sessioninfo[] = "<span class='date-cell'>" . $createdAt->format('D d M Y H:i:s') . "</span>";
+               }
 
-            // Array to hold data for table.
-            $sessioninfo = array();
+               // Add minimized progress information with a toggle button
+               $progressContent = "<pre>" . implode("\n ", json_decode($session->progress)) . "</pre>";
+               $progressCellId = "progress-cell-" . $sessionid;
 
-            if ($session->createdat != null) {
+               $sessioninfo[] = "
+                   
+                   <button type='button' class='btn btn-primary resume-btn'' onclick='toggleProgress(\"$progressCellId\")'>View Progress</button>
+                 
+                   <div id='$progressCellId' class='progress-cell hidden-content' style='display: none;'>$progressContent</div>
+               ";
 
-                // Retrieve createdAt and format.
-                $date = new DateTime($session->createdat, new DateTimeZone('US/Eastern'));
-                $date->setTimezone(new DateTimeZone('America/New_York'));
-                // date_timezone_set($date, new DateTimeZone('America/New_York'));
-                $sessioninfo[] = $date->format('D d M Y H:i:s');
-            }
+               // Add score
+               $sessioninfo[] = "<span class='score-cell'>" . $session->score . "</span>";
+               $sessionscores[] = $session->score;
 
-            if ($session->lastrequesttime != null) {
+               // Add session info to table data
+               $tabledata[] = $sessioninfo;
+           }
+       }
 
-                // Retrieve lastRequestTime and format.
-                $date = new DateTime($session->lastrequesttime, new DateTimeZone('US/Eastern'));
-                $date->setTimezone(new DateTimeZone('America/New_York'));
-                $sessioninfo[] = $date->format('D d M Y H:i:s');
-            }
-            // Add progress to table.
-            $sessioninfo[] = ("<pre>" . implode("\n ", json_decode($session->progress)) . "</pre>");
+        // Output table
+        $table->data = $tabledata;
+        echo "<div class=\"cmi5launch-table-container\">";
+        echo html_writer::table($table);
+        echo "</div>";
+        // Update AU record in the database
+        $DB->update_record('cmi5launch_aus', $au);
 
-            // Add score to table.
-            $sessioninfo[] = $session->score;
-            // Add score to array for AU.
-            $sessionscores[] = $session->score;
-
-            // Add to be fed to table.
-            $tabledata[] = $sessioninfo;
-        } 
     } catch (Exception $e) {
-
-        // Restore default hadlers.
         restore_exception_handler();
         restore_error_handler();
-
-        // Throw an exception.
-        throw new customException('loading session table on AUview page. Report this to system administrator: ' . $e->getMessage() . 'Check that session information is present in DB and session id is correct.' , 0);
+        throw new customException(
+            'Error loading session table on AU view page. Contact the system administrator with this message: ' .
+            $e->getMessage() . '. Check that session information is present in DB and session ID is correct.', 0
+        );
+    } finally {
+        restore_exception_handler();
+        restore_error_handler();
     }
-
-    // Write table.
-    $table->data = $tabledata;
-    echo html_writer::table($table);
-
-    // Update AU in table with new info.
-    $DB->update_record('cmi5launch_aus', $au);
-
-    // Restore default hadlers.
-    restore_exception_handler();
-    restore_error_handler();
 }
+
+echo "<button id='toggleRowsButton' class='btn btn-secondary'>Show More</button>";
+
 
 // Pass the auid and new session info to next page (launch.php).
 // New attempt button.
-echo "<p tabindex=\"0\"onkeyup=\"key_test('"
-    . $auid . "')\"id='cmi5launch_newattempt'><button onclick=\"mod_cmi5launch_launchexperience('"
-    . $auid
-    . "')\" style=\"cursor: pointer;\">"
-    . get_string('cmi5launch_attempt', 'cmi5launch')
-    . "</button></p>";
+
+
+echo "<div class='button-container' tabindex='0' onkeyup=\"key_test('" . $auid . "')\" id='cmi5launch_newattempt'>
+        <button class='btn btn-primary resume-btn' onclick=\"resumeSession('" . $auid . "')\">"
+        . ($au->sessions === null ? "Start AU" : "Resume AU")
+        . "</button>";
+
+if ($au->sessions !== null) {
+    echo "<button class='btn btn-primary restart-btn' onclick=\"restartSession('" . $auid . "')\">Restart AU</button>";
+}
+
+echo "</div>";
 
 // Add a form to be posted based on the attempt selected.
 ?>
     <form id="launchform" action="launch.php" method="get">
         <input id="launchform_registration" name="launchform_registration" type="hidden" value="default">
+        <input id="launchform_restart" name="restart" type="hidden" value="false">
         <input id="id" name="id" type="hidden" value="<?php echo $id ?>">
         <input id="n" name="n" type="hidden" value="<?php echo $n ?>">
     </form>
