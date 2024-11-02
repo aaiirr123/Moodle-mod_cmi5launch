@@ -72,27 +72,6 @@ $initialVisibleAUCount = 5;
     <script>
         const initialVisibleAUCount = <?php echo $initialVisibleAUCount; ?>;
 
-        // Function to toggle rows and button text
-        function toggleRows() {
-            const isShowingMore = toggleButton.textContent === 'Show More';
-            if (isShowingMore) {
-                // Show all rows
-                rows.forEach(row => row.classList.add('visible'));
-                toggleButton.textContent = 'Show Less';
-            } else {
-                // Show only the first 5 rows
-                rows.forEach((row, index) => {
-                    if (index < initialVisibleAUCount) {
-                        row.classList.add('visible');
-                    } else {
-                        row.classList.remove('visible');
-                    }
-                });
-                toggleButton.textContent = 'Show More';
-            }
-        }
-        
-
         window.addEventListener("pageshow", function (event) {
             // Check if the page was loaded from cache
             if (event.persisted) {
@@ -161,6 +140,26 @@ $initialVisibleAUCount = 5;
                 const toggleButton = document.getElementById('toggleRowsButton');
                 // Add click event to the button to toggle rows
                 toggleButton.addEventListener('click', toggleRows);
+
+                        // Function to toggle rows and button text
+                function toggleRows() {
+                    const isShowingMore = toggleButton.textContent === 'Show More';
+                    if (isShowingMore) {
+                        // Show all rows
+                        rows.forEach(row => row.classList.add('visible'));
+                        toggleButton.textContent = 'Show Less';
+                    } else {
+                        // Show only the first 5 rows
+                        rows.forEach((row, index) => {
+                            if (index < initialVisibleAUCount) {
+                                row.classList.add('visible');
+                            } else {
+                                row.classList.remove('visible');
+                            }
+                        });
+                        toggleButton.textContent = 'Show More';
+                    }
+                }
             }
 
             // Show only the first 5 rows initially
