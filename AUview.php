@@ -154,14 +154,15 @@ $initialVisibleAUCount = 5;
             if (rows > initialVisibleAUCount)
             {
                 const toggleButton = document.getElementById('toggleRowsButton');
-
-                // Show only the first 5 rows initially
-                for (let i = 0; i < initialVisibleAUCount && i < rows.length; i++) {
-                    rows[i].classList.add('visible');
-                }
                 // Add click event to the button to toggle rows
                 toggleButton.addEventListener('click', toggleRows);
             }
+
+            // Show only the first 5 rows initially
+            for (let i = 0; i < initialVisibleAUCount && i < rows.length; i++) {
+                rows[i].classList.add('visible');
+            }
+            
         });
 
     </script>
