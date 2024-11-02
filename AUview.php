@@ -33,7 +33,6 @@ require_once("$CFG->dirroot/lib/outputcomponents.php");
 // Include the errorover (error override) funcs.
 require_once ($CFG->dirroot . '/mod/cmi5launch/classes/local/errorover.php');
 
-
 require_login($course, false, $cm);
 
 global $cmi5launch, $USER; 
@@ -45,20 +44,6 @@ $retrievesession = $sessionhelper->cmi5launch_get_retrieve_sessions_from_db();
 $retrieveaus = $auhelper->get_cmi5launch_retrieve_aus_from_db();
 $progress = new progress;
 
-
-// MB - Not currently using events, but may in future.
-/*
-// Trigger module viewed event.
-$event = \mod_cmi5launch\event\course_module_viewed::create(array(
-    'objectid' => $cmi5launch->id,
-    'context' => $context,
-));
-$event->add_record_snapshot('course', $course);
-$event->add_record_snapshot('cmi5launch', $cmi5launch);
-$event->add_record_snapshot('course_modules', $cm);
-$event->trigger();
-*/
-
 // Print the page header.
 $PAGE->set_url('/mod/cmi5launch/view.php', array('id' => $cm->id));
 $PAGE->set_title(format_string($cmi5launch->name));
@@ -69,6 +54,8 @@ $PAGE->requires->css('/mod/cmi5launch/styles.css');
 
 // Output starts here.
 echo $OUTPUT->header();
+
+$initialVisibleAUCount = 5;
 
 // Create the back button.
 ?>
@@ -83,16 +70,7 @@ echo $OUTPUT->header();
 ?>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-        const rows = document.querySelectorAll('#cmi5launch_auSessionTable tbody tr');
-        const toggleButton = document.getElementById('toggleRowsButton');
-        const initialVisibleCount = 5;
-
-        // Show only the first 5 rows initially
-        for (let i = 0; i < initialVisibleCount && i < rows.length; i++) {
-            rows[i].classList.add('visible');
-        }
-
+        const initialVisibleAUCount = <?php echo $initialVisibleAUCount; ?>;
         // Function to toggle rows and button text
         function toggleRows() {
             const isShowingMore = toggleButton.textContent === 'Show More';
@@ -103,7 +81,7 @@ echo $OUTPUT->header();
             } else {
                 // Show only the first 5 rows
                 rows.forEach((row, index) => {
-                    if (index < initialVisibleCount) {
+                    if (index < initialVisibleAUCount) {
                         row.classList.add('visible');
                     } else {
                         row.classList.remove('visible');
@@ -112,10 +90,7 @@ echo $OUTPUT->header();
                 toggleButton.textContent = 'Show More';
             }
         }
-
-        // Add click event to the button to toggle rows
-        toggleButton.addEventListener('click', toggleRows);
-     });
+        
 
         window.addEventListener("pageshow", function (event) {
             // Check if the page was loaded from cache
@@ -165,20 +140,25 @@ echo $OUTPUT->header();
             $('#launchform').submit();
         }
 
-        // // Function to run when the experience is launched.
-        // function mod_cmi5launch_abandon(registration) {
-        //     $progress->
-        //     $statements = $progress.cmi5launch_send_request_to_lrs('cmi5launch_stream_and_send', $data, $session->id);
-        // }
-
-
-
         // TODO: there may be a better way to check completion. Out of scope for current project.
         $(document).ready(function() {
             setInterval(function() {
                 $('#cmi5launch_completioncheck').load('completion_check.php?id=<?php echo $id ?>&n=<?php echo $n ?>');
-            }, 30000); // TODO: make this interval a configuration setting.
+            }, 10000); // TODO: make this interval a configuration setting.
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('#cmi5launch_auSessionTable tbody tr');
+            const toggleButton = document.getElementById('toggleRowsButton');
+
+            // Show only the first 5 rows initially
+            for (let i = 0; i < initialVisibleAUCount && i < rows.length; i++) {
+                rows[i].classList.add('visible');
+            }
+                // Add click event to the button to toggle rows
+                toggleButton.addEventListener('click', toggleRows);
+        });
+
     </script>
 <?php
 
@@ -284,12 +264,13 @@ if (!is_null($au->sessions)) {
     }
 }
 
-echo "<button id='toggleRowsButton' class='btn btn-secondary'>Show More</button>";
-
+if (count($au->sessions) > $initialVisibleAUCount)
+{
+    echo "<button id='toggleRowsButton' class='btn btn-secondary'>Show More</button>";
+}
 
 // Pass the auid and new session info to next page (launch.php).
 // New attempt button.
-
 
 echo "<div class='button-container' tabindex='0' onkeyup=\"key_test('" . $auid . "')\" id='cmi5launch_newattempt'>
         <button class='btn btn-primary resume-btn' onclick=\"resumeSession('" . $auid . "')\">"
