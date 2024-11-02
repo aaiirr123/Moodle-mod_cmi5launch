@@ -156,10 +156,8 @@ $initialVisibleAUCount = 5;
             console.log("visible au \n", initialVisibleAUCount);
 
 
-            if (rows > initialVisibleAUCount)
+            if (rows.length > initialVisibleAUCount)
             {
-                console.log("rows greater \n", rows);
-
                 const toggleButton = document.getElementById('toggleRowsButton');
                 // Add click event to the button to toggle rows
                 toggleButton.addEventListener('click', toggleRows);
@@ -277,7 +275,7 @@ if (!is_null($au->sessions)) {
     }
 }
 
-if ($au->sessions )
+if ($au->sessions && count($au->sessions) > $initialVisibleAUCount)
 {
     echo "<button id='toggleRowsButton' class='btn btn-secondary'>Show More</button>";
 }
@@ -290,7 +288,7 @@ echo "<div class='button-container' tabindex='0' onkeyup=\"key_test('" . $auid .
         . ($au->sessions === null ? "Start AU" : "Resume AU")
         . "</button>";
 
-if ($au->sessions !== null) {
+if ($au->sessions) {
     echo "<button class='btn btn-primary restart-btn' onclick=\"restartSession('" . $auid . "')\">Restart AU</button>";
 }
 
