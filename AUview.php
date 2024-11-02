@@ -71,6 +71,7 @@ $initialVisibleAUCount = 5;
 
     <script>
         const initialVisibleAUCount = <?php echo $initialVisibleAUCount; ?>;
+
         // Function to toggle rows and button text
         function toggleRows() {
             const isShowingMore = toggleButton.textContent === 'Show More';
@@ -148,15 +149,19 @@ $initialVisibleAUCount = 5;
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            const rows = document.querySelectorAll('#cmi5launch_auSessionTable tbody tr');
-            const toggleButton = document.getElementById('toggleRowsButton');
 
-            // Show only the first 5 rows initially
-            for (let i = 0; i < initialVisibleAUCount && i < rows.length; i++) {
-                rows[i].classList.add('visible');
-            }
+            const rows = document.querySelectorAll('#cmi5launch_auSessionTable tbody tr');
+            if (rows > initialVisibleAUCount)
+            {
+                const toggleButton = document.getElementById('toggleRowsButton');
+
+                // Show only the first 5 rows initially
+                for (let i = 0; i < initialVisibleAUCount && i < rows.length; i++) {
+                    rows[i].classList.add('visible');
+                }
                 // Add click event to the button to toggle rows
                 toggleButton.addEventListener('click', toggleRows);
+            }
         });
 
     </script>
