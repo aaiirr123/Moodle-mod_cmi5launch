@@ -150,9 +150,16 @@ $initialVisibleAUCount = 5;
 
         document.addEventListener('DOMContentLoaded', function() {
 
+            console.log("Loading\n");
             const rows = document.querySelectorAll('#cmi5launch_auSessionTable tbody tr');
+            console.log("rows\n", rows);
+            console.log("visible au \n", initialVisibleAUCount);
+
+
             if (rows > initialVisibleAUCount)
             {
+                console.log("rows greater \n", rows);
+
                 const toggleButton = document.getElementById('toggleRowsButton');
                 // Add click event to the button to toggle rows
                 toggleButton.addEventListener('click', toggleRows);
