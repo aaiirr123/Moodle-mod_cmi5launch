@@ -86,12 +86,12 @@ echo $OUTPUT->header();
             }
         }
 
-        // function key_test(registration) {
+        function key_test(registration) {
 
-        //     if (event.keyCode === 13 || event.keyCode === 32) {
-        //         mod_cmi5launch_launchexperience(registration);
-        //     }
-        // }
+            if (event.keyCode === 13 || event.keyCode === 32) {
+                mod_cmi5launch_launchexperience(registration);
+            }
+        }
 
         function launch_session(auid, restart) {
             $('#launchform_registration').val(auid);
@@ -99,14 +99,14 @@ echo $OUTPUT->header();
             $('#launchform').submit();
         }
 
-        // // Function to run when the experience is launched.
-        // function mod_cmi5launch_launchexperience(registration) {
+        // Function to run when the experience is launched.
+        function mod_cmi5launch_launchexperience(registration) {
             
-        //     // Set the form paramters.
-        //     $('#launchform_registration').val(registration);
-        //     // Post it.
-        //     $('#launchform').submit();
-        // }
+            // Set the form paramters.
+            $('#launchform_registration').val(registration);
+            // Post it.
+            $('#launchform').submit();
+        }
 
         // TODO: there may be a better way to check completion. Out of scope for current project.
         $(document).ready(function() {
