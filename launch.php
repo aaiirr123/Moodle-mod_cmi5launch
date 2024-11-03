@@ -64,12 +64,6 @@ function abandonCourse($session, $au, $actorname) {
         "timestamp" => date("c"),
     );
 
-    echo "<h1>Data</h1>";
-    echo "<h1>clear state</h1>";
-    clearLrsState($session, $au->lmsid, $agent);
-    
-    var_dump($statement);
-
     $statement_json = json_encode($statement);
 
 
@@ -86,11 +80,6 @@ function abandonCourse($session, $au, $actorname) {
            // LRS username and password.
            $user = $settings['cmi5launchlrslogin'];
            $pass = $settings['cmi5launchlrspass'];
-           echo "<h1>user</h1>";
-           var_dump($user);
-           echo "<h1>pass</h1>";
-           var_dump($pass);
-
        }
        catch (\Throwable $e) {
 
@@ -120,13 +109,11 @@ function abandonCourse($session, $au, $actorname) {
       try {
           //By calling the function this way, it enables encapsulation of the function and allows for testing.
                //It is an extra step, but necessary for required PHP Unit testing.
-               echo "<h1>called</h1>";
                $result = call_user_func($stream, $options, $url);
             
 
            // Decode result.
            $resultdecoded = json_decode($result, true);
-           var_dump($resultdecoded);
            // Restore default hadlers.
            restore_exception_handler();
            restore_error_handler();
@@ -143,7 +130,9 @@ function abandonCourse($session, $au, $actorname) {
        }
 }
 
-function clearLrsState($session, $activityId, $agent) {
+
+function clearLrsState($session, $activityId, $actorname) {
+
     // Retrieve LRS settings from the session
     $settings = cmi5launch_settings($session->id);
 
@@ -153,6 +142,13 @@ function clearLrsState($session, $activityId, $agent) {
     // LRS credentials
     $user = $settings['cmi5launchlrslogin'];
     $pass = $settings['cmi5launchlrspass'];
+
+    $agent = array(
+        'account' => array(
+            "homePage" => $settings['cmi5launchcustomacchp'],
+            "name" => $actorname,
+        ),
+    );
 
     // Build query parameters for the DELETE request
     $url .= "?activityId=" . urlencode($activityId) . "&agent=" . urlencode(json_encode($agent));
@@ -178,12 +174,11 @@ function clearLrsState($session, $activityId, $agent) {
 
     try {
         // Call the function encapsulated for testing
-        echo "<h1>Deleting State Data</h1>";
+
         $result = call_user_func($stream, $options, $url);
 
         // Decode and check response for debugging
         $resultdecoded = json_decode($result, true);
-        var_dump($resultdecoded);
 
         // Restore handlers
         restore_exception_handler();
@@ -257,8 +252,7 @@ try {
         $sessionids = json_decode($au->sessions);
         $sessionId = end($sessionids);
         $session = $DB->get_record('cmi5launch_sessions', array('sessionid' => $sessionId));
-        
-        abandonCourse($session, $au, $USER->username);
+        clearLrsState($session, $au->lmsid, $USER->username);
     }
 
     // Pass in the au index to retrieve a launchurl and session id.
