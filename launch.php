@@ -168,7 +168,6 @@ function clearLrsState($session, $activityId, $agent) {
 
     try {
         // Call the function encapsulated for testing
-        echo "<h1>Deleting State Data</h1>";
         $result = call_user_func($stream, $options, $url);
 
         // Decode and check response for debugging
