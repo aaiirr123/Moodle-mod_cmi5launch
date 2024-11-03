@@ -264,7 +264,7 @@ if ($au->sessions && count(json_decode($au->sessions)) > $initialVisibleAUCount)
 // New attempt button.
 
 echo "<div class='button-container' tabindex='0' onkeyup=\"key_test('" . $auid . "')\" id='cmi5launch_newattempt'>
-        <button class='btn btn-primary resume-btn' onclick=\"launch_session('" . $auid . "', false)\">"
+        <button class='resume-btn' onclick=\"launch_session('" . $auid . "', false)\">"
         . ($au->sessions === null ? "Start AU" : "Resume AU")
         . "</button>";
 
