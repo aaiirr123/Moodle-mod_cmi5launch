@@ -64,12 +64,8 @@ function abandonCourse($session, $au, $actorname) {
         "timestamp" => date("c"),
     );
 
-    echo "<h1>Data</h1>";
-    echo "<h1>clear state</h1>";
-    clearLrsState($session, activityId: $au->lmsid, $agent);
+    //clearLrsState($session, activityId: $au->lmsid, $agent);
     
-    var_dump($statement);
-
     $statement_json = json_encode($statement);
 
 
@@ -86,11 +82,6 @@ function abandonCourse($session, $au, $actorname) {
            // LRS username and password.
            $user = $settings['cmi5launchlrslogin'];
            $pass = $settings['cmi5launchlrspass'];
-           echo "<h1>user</h1>";
-           var_dump($user);
-           echo "<h1>pass</h1>";
-           var_dump($pass);
-
        }
        catch (\Throwable $e) {
 
@@ -120,13 +111,12 @@ function abandonCourse($session, $au, $actorname) {
       try {
           //By calling the function this way, it enables encapsulation of the function and allows for testing.
                //It is an extra step, but necessary for required PHP Unit testing.
-               echo "<h1>called</h1>";
                $result = call_user_func($stream, $options, $url);
             
 
            // Decode result.
            $resultdecoded = json_decode($result, true);
-           var_dump($resultdecoded);
+  
            // Restore default hadlers.
            restore_exception_handler();
            restore_error_handler();
@@ -183,7 +173,6 @@ function clearLrsState($session, $activityId, $agent) {
 
         // Decode and check response for debugging
         $resultdecoded = json_decode($result, true);
-        var_dump($resultdecoded);
 
         // Restore handlers
         restore_exception_handler();
