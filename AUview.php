@@ -86,12 +86,12 @@ echo $OUTPUT->header();
             }
         }
 
-        function key_test(registration) {
+        // function key_test(registration) {
 
-            if (event.keyCode === 13 || event.keyCode === 32) {
-                mod_cmi5launch_launchexperience(registration);
-            }
-        }
+        //     if (event.keyCode === 13 || event.keyCode === 32) {
+        //         mod_cmi5launch_launchexperience(registration);
+        //     }
+        // }
 
         function launch_session(auid, restart) {
             $('#launchform_registration').val(auid);
@@ -99,14 +99,14 @@ echo $OUTPUT->header();
             $('#launchform').submit();
         }
 
-        // Function to run when the experience is launched.
-        function mod_cmi5launch_launchexperience(registration) {
+        // // Function to run when the experience is launched.
+        // function mod_cmi5launch_launchexperience(registration) {
             
-            // Set the form paramters.
-            $('#launchform_registration').val(registration);
-            // Post it.
-            $('#launchform').submit();
-        }
+        //     // Set the form paramters.
+        //     $('#launchform_registration').val(registration);
+        //     // Post it.
+        //     $('#launchform').submit();
+        // }
 
         // TODO: there may be a better way to check completion. Out of scope for current project.
         $(document).ready(function() {
@@ -264,14 +264,13 @@ if ($au->sessions && count(json_decode($au->sessions)) > $initialVisibleAUCount)
 // New attempt button.
 
 echo "<div class='button-container' tabindex='0' onkeyup=\"key_test('" . $auid . "')\" id='cmi5launch_newattempt'>
-        <button class='btn btn-primary resume-btn' onclick=\"launch_session('" . $auid . "," . false ."')\">"
+        <button class='btn btn-primary resume-btn' onclick=\"launch_session('" . $auid . "', false)\">"
         . ($au->sessions === null ? "Start AU" : "Resume AU")
         . "</button>";
 
 if ($au->sessions) {
-    echo "<button class='btn btn-primary restart-btn' onclick=\"launch_session('" . $auid . "," . true . "')\">Restart AU</button>";
+    echo "<button class='btn btn-primary restart-btn' onclick=\"launch_session('" . $auid . "', true)\">Restart AU</button>";
 }
-
 echo "</div>";
 
 // Add a form to be posted based on the attempt selected.
