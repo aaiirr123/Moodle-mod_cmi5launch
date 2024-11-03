@@ -25,12 +25,10 @@ use mod_cmi5launch\local\session_helpers;
 use mod_cmi5launch\local\customException;
 use mod_cmi5launch\local\au_helpers;
 use mod_cmi5launch\local\progress;
+
 require_once(dirname(dirname(dirname(__FILE__))) . '/config.php');
 require('header.php');
 require_once("$CFG->dirroot/lib/outputcomponents.php");
-
-
-// Include the errorover (error override) funcs.
 require_once ($CFG->dirroot . '/mod/cmi5launch/classes/local/errorover.php');
 
 require_login($course, false, $cm);
@@ -42,7 +40,6 @@ $auhelper = new au_helpers;
 $sessionhelper = new session_helpers;
 $retrievesession = $sessionhelper->cmi5launch_get_retrieve_sessions_from_db();
 $retrieveaus = $auhelper->get_cmi5launch_retrieve_aus_from_db();
-$progress = new progress;
 
 // Print the page header.
 $PAGE->set_url('/mod/cmi5launch/view.php', array('id' => $cm->id));
@@ -52,12 +49,12 @@ $PAGE->set_context($context);
 $PAGE->requires->jquery();
 $PAGE->requires->css('/mod/cmi5launch/styles.css');
 
+$initialVisibleAUCount = 5;
+
 // Output starts here.
 echo $OUTPUT->header();
 
-$initialVisibleAUCount = 5;
-
-// Create the back button.
+// Back Button
 ?>
 <form action="view.php" method="get">
     <input id="id" name="id" type="hidden" value="<?php echo $id; ?>">
@@ -71,11 +68,10 @@ $initialVisibleAUCount = 5;
 
     <script>
         const initialVisibleAUCount = <?php echo $initialVisibleAUCount; ?>;
-
+        // Refresh the page even if cached
         window.addEventListener("pageshow", function (event) {
-            // Check if the page was loaded from cache
             if (event.persisted) {
-                window.location.reload(); // Reload the page to refresh data
+                window.location.reload();
             }
         });
 
@@ -90,50 +86,35 @@ $initialVisibleAUCount = 5;
             }
         }
 
-        function key_test(registration) {
+        // function key_test(registration) {
 
-            if (event.keyCode === 13 || event.keyCode === 32) {
-                mod_cmi5launch_launchexperience(registration);
-            }
-        }
+        //     if (event.keyCode === 13 || event.keyCode === 32) {
+        //         mod_cmi5launch_launchexperience(registration);
+        //     }
+        // }
 
-        function resumeSession(auid) {
+        function launch_session(auid, restart) {
             $('#launchform_registration').val(auid);
-            $('#launchform_restart').val(false);
+            $('#launchform_restart').val(restart);
             $('#launchform').submit();
         }
 
-        // Function to handle restarting the session.
-        function restartSession(auid) {
-            // Add logic if needed to reset the session data here
-            $('#launchform_registration').val(auid);
-            $('#launchform_restart').val(true);
-            $('#launchform').submit();
-        }
-
-        // Function to run when the experience is launched.
-        function mod_cmi5launch_launchexperience(registration) {
+        // // Function to run when the experience is launched.
+        // function mod_cmi5launch_launchexperience(registration) {
             
-            // Set the form paramters.
-            $('#launchform_registration').val(registration);
-            // Post it.
-            $('#launchform').submit();
-        }
+        //     // Set the form paramters.
+        //     $('#launchform_registration').val(registration);
+        //     // Post it.
+        //     $('#launchform').submit();
+        // }
 
         // TODO: there may be a better way to check completion. Out of scope for current project.
         $(document).ready(function() {
             setInterval(function() {
                 $('#cmi5launch_completioncheck').load('completion_check.php?id=<?php echo $id ?>&n=<?php echo $n ?>');
             }, 10000); // TODO: make this interval a configuration setting.
-        });
 
-        document.addEventListener('DOMContentLoaded', function() {
-
-            console.log("Loading\n");
             const rows = document.querySelectorAll('#cmi5launch_auSessionTable tbody tr');
-            console.log("rows\n", rows);
-            console.log("visible au \n", initialVisibleAUCount);
-
 
             if (rows.length > initialVisibleAUCount)
             {
@@ -283,12 +264,12 @@ if ($au->sessions && count(json_decode($au->sessions)) > $initialVisibleAUCount)
 // New attempt button.
 
 echo "<div class='button-container' tabindex='0' onkeyup=\"key_test('" . $auid . "')\" id='cmi5launch_newattempt'>
-        <button class='btn btn-primary resume-btn' onclick=\"resumeSession('" . $auid . "')\">"
+        <button class='btn btn-primary resume-btn' onclick=\"launch_session('" . $auid . "," . false ."')\">"
         . ($au->sessions === null ? "Start AU" : "Resume AU")
         . "</button>";
 
 if ($au->sessions) {
-    echo "<button class='btn btn-primary restart-btn' onclick=\"restartSession('" . $auid . "')\">Restart AU</button>";
+    echo "<button class='btn btn-primary restart-btn' onclick=\"launch_session('" . $auid . "," . true . "')\">Restart AU</button>";
 }
 
 echo "</div>";
