@@ -66,7 +66,7 @@ function abandonCourse($session, $au, $actorname) {
 
     echo "<h1>Data</h1>";
     echo "<h1>clear state</h1>";
-    clearLrsState($session, $au->lmsid, $agent);
+    clearLrsState($session, activityId: $au->lmsid, $agent);
     
     var_dump($statement);
 
@@ -257,8 +257,7 @@ try {
         $sessionids = json_decode($au->sessions);
         $sessionId = end($sessionids);
         $session = $DB->get_record('cmi5launch_sessions', array('sessionid' => $sessionId));
-        
-        abandonCourse($session, $au, $USER->username);
+        clearLrsState($session, $au->lmsid, $USER->username);
     }
 
     // Pass in the au index to retrieve a launchurl and session id.
