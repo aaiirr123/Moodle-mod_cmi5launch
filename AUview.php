@@ -58,7 +58,7 @@ echo $OUTPUT->header();
 ?>
 <form action="view.php" method="get">
     <input id="id" name="id" type="hidden" value="<?php echo $id; ?>">
-    <button type="submit" class="btn btn-primary resume-btn">Back</button>
+    <button type="submit" class="btn resume-btn">Back</button>
 </form>
 <?php
 
@@ -220,7 +220,7 @@ if (!is_null($au->sessions)) {
 
                $sessioninfo[] = "
                    
-                   <button type='button' class='btn btn-primary resume-btn'' onclick='toggleProgress(\"$progressCellId\")'>View Progress</button>
+                   <button type='button' class='btn resume-btn'' onclick='toggleProgress(\"$progressCellId\")'>View Progress</button>
                  
                    <div id='$progressCellId' class='progress-cell hidden-content' style='display: none;'>$progressContent</div>
                ";
@@ -269,7 +269,7 @@ echo "<div class='button-container' tabindex='0' onkeyup=\"key_test('" . $auid .
         . "</button>";
 
 if ($au->sessions) {
-    echo "<button class='btn btn-primary restart-btn' onclick=\"launch_session('" . $auid . "', true)\">Restart AU</button>";
+    echo "<button class='btn restart-btn' onclick=\"launch_session('" . $auid . "', true)\">Restart AU</button>";
 }
 echo "</div>";
 
