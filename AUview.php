@@ -40,6 +40,8 @@ $auhelper = new au_helpers;
 $sessionhelper = new session_helpers;
 $retrievesession = $sessionhelper->cmi5launch_get_retrieve_sessions_from_db();
 $retrieveaus = $auhelper->get_cmi5launch_retrieve_aus_from_db();
+$progress = new progress;
+
 
 // Print the page header.
 $PAGE->set_url('/mod/cmi5launch/view.php', array('id' => $cm->id));
@@ -74,7 +76,6 @@ echo $OUTPUT->header();
                 window.location.reload();
             }
         });
-
         function toggleProgress(progressCellId) {
             const content = document.getElementById(progressCellId);
             if (content.style.display === 'none' || content.style.display === '') {
@@ -219,9 +220,7 @@ if (!is_null($au->sessions)) {
                $progressCellId = "progress-cell-" . $sessionid;
 
                $sessioninfo[] = "
-                   
                    <button type='button' class='btn resume-btn'' onclick='toggleProgress(\"$progressCellId\")'>View Progress</button>
-                 
                    <div id='$progressCellId' class='progress-cell hidden-content' style='display: none;'>$progressContent</div>
                ";
 
@@ -271,6 +270,7 @@ echo "<div class='button-container' tabindex='0' onkeyup=\"key_test('" . $auid .
 if ($au->sessions) {
     echo "<button class='btn restart-btn' onclick=\"launch_session('" . $auid . "', true)\">Restart AU</button>";
 }
+
 echo "</div>";
 
 // Add a form to be posted based on the attempt selected.

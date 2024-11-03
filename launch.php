@@ -64,8 +64,6 @@ function abandonCourse($session, $au, $actorname) {
         "timestamp" => date("c"),
     );
 
-    //clearLrsState($session, activityId: $au->lmsid, $agent);
-    
     $statement_json = json_encode($statement);
 
 
@@ -116,7 +114,6 @@ function abandonCourse($session, $au, $actorname) {
 
            // Decode result.
            $resultdecoded = json_decode($result, true);
-  
            // Restore default hadlers.
            restore_exception_handler();
            restore_error_handler();
@@ -133,7 +130,9 @@ function abandonCourse($session, $au, $actorname) {
        }
 }
 
+
 function clearLrsState($session, $activityId, $actorname) {
+
     // Retrieve LRS settings from the session
     $settings = cmi5launch_settings($session->id);
 
@@ -175,6 +174,7 @@ function clearLrsState($session, $activityId, $actorname) {
 
     try {
         // Call the function encapsulated for testing
+
         $result = call_user_func($stream, $options, $url);
 
         // Decode and check response for debugging
@@ -252,7 +252,6 @@ try {
         $sessionids = json_decode($au->sessions);
         $sessionId = end($sessionids);
         $session = $DB->get_record('cmi5launch_sessions', array('sessionid' => $sessionId));
-
         clearLrsState($session, $au->lmsid, $USER->username);
     }
 
