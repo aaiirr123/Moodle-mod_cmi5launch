@@ -133,7 +133,7 @@ function abandonCourse($session, $au, $actorname) {
        }
 }
 
-function clearLrsState($session, $activityId, $agent) {
+function clearLrsState($session, $activityId, $actorname) {
     // Retrieve LRS settings from the session
     $settings = cmi5launch_settings($session->id);
 
@@ -143,6 +143,13 @@ function clearLrsState($session, $activityId, $agent) {
     // LRS credentials
     $user = $settings['cmi5launchlrslogin'];
     $pass = $settings['cmi5launchlrspass'];
+
+    $agent = array(
+        'account' => array(
+            "homePage" => $settings['cmi5launchcustomacchp'],
+            "name" => $actorname,
+        ),
+    );
 
     // Build query parameters for the DELETE request
     $url .= "?activityId=" . urlencode($activityId) . "&agent=" . urlencode(json_encode($agent));
@@ -245,6 +252,7 @@ try {
         $sessionids = json_decode($au->sessions);
         $sessionId = end($sessionids);
         $session = $DB->get_record('cmi5launch_sessions', array('sessionid' => $sessionId));
+
         clearLrsState($session, $au->lmsid, $USER->username);
     }
 
