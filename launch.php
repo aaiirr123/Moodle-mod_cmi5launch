@@ -241,6 +241,7 @@ set_error_handler('mod_cmi5launch\local\custom_warning', E_WARNING);
 
 
 try {
+
     // Retrieve AUs.
     $au = $retrieveaus($id);
     // Retrieve the au index.
