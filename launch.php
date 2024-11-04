@@ -299,25 +299,9 @@ $savesession($sessionid, $location, $launchmethod);
 // Last thing check for updates.
 cmi5launch_update_grades($cmi5launch, $USER->id);
 
-// header("Location: " . $location);
+header("Location: " . $location);
 
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Launching CMI5 AU</title>
-</head>
-<body>
-    <script>
-        // Open the CMI5 AU in a new window
-        const launchURL = "<?php echo $location; ?>";
-        window.open(launchURL, '_blank'); // Opens the link in a new tab     
-    </script>
-    <p>Launching the CMI5 AU in a new window. If the window does not open, please <a href="<?php echo $location; ?>" target="_blank">click here</a>.</p>
-</body>
-</html>
-<?php
+
 
 // Restore default handlers.
 restore_exception_handler();
