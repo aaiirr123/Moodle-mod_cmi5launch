@@ -314,8 +314,7 @@ cmi5launch_update_grades($cmi5launch, $USER->id);
         const launchURL = "<?php echo $location; ?>";
         window.open(launchURL, '_blank', 'width=800,height=600');
         
-        // Redirect the current window to a confirmation or course page
-        window.location.href = "<?php echo $CFG->wwwroot . '/mod/cmi5launch/view.php?id=' . $id; ?>";
+
     </script>
     <p>Launching the CMI5 AU in a new window. If the window does not open, please <a href="<?php echo $location; ?>" target="_blank">click here</a>.</p>
 </body>
