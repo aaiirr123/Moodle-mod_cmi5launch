@@ -102,10 +102,10 @@ echo $OUTPUT->header();
 
         function launch_session(auid, restart) {
             // Construct the URL with parameters
-            const url = `launch.php?launchform_registration=${encodeURIComponent(auid)}&restart=${encodeURIComponent(restart)}&id=<?php echo $id; ?>&n=<?php echo $n; ?>`;
-            
+            const url = `launch.php?launchform_registration=${encodeURIComponent(auid)}&restart=${encodeURIComponent(restart)}&id=<?php echo $id; ?>&n=<?php echo $n; ?>`;            
             // Open the URL in a new tab
             window.open(url, '_blank');
+            window.location.reload();
         }
 
 
