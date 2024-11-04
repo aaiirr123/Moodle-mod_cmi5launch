@@ -94,11 +94,20 @@ echo $OUTPUT->header();
         //     }
         // }
 
+        // function launch_session(auid, restart) {
+        //     $('#launchform_registration').val(auid);
+        //     $('#launchform_restart').val(restart);
+        //     $('#launchform').submit();
+        // }
+
         function launch_session(auid, restart) {
-            $('#launchform_registration').val(auid);
-            $('#launchform_restart').val(restart);
-            $('#launchform').submit();
+            // Construct the URL with parameters
+            const url = `launch.php?launchform_registration=${encodeURIComponent(auid)}&restart=${encodeURIComponent(restart)}&id=<?php echo $id; ?>&n=<?php echo $n; ?>`;
+            
+            // Open the URL in a new tab
+            window.open(url, '_blank');
         }
+
 
         // // Function to run when the experience is launched.
         // function mod_cmi5launch_launchexperience(registration) {

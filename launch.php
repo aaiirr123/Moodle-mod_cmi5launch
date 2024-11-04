@@ -293,13 +293,13 @@ try {
     // If there is an error, return the error.
     throw new customException("Error in launching experience. Report this error to system administrator: ". $e->getMessage());
 }
-    // Create and save session object to session table.
-    $savesession($sessionid, $location, $launchmethod);
+// Create and save session object to session table.
+$savesession($sessionid, $location, $launchmethod);
 
-    // Last thing check for updates.
-    cmi5launch_update_grades($cmi5launch, $USER->id);
+// Last thing check for updates.
+cmi5launch_update_grades($cmi5launch, $USER->id);
 
-    header("Location: " . $location);
+header("Location: " . $location);
 
 
 
