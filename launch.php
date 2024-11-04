@@ -293,15 +293,34 @@ try {
     // If there is an error, return the error.
     throw new customException("Error in launching experience. Report this error to system administrator: ". $e->getMessage());
 }
-    // Create and save session object to session table.
-    $savesession($sessionid, $location, $launchmethod);
+// Create and save session object to session table.
+$savesession($sessionid, $location, $launchmethod);
 
-    // Last thing check for updates.
-    cmi5launch_update_grades($cmi5launch, $USER->id);
+// Last thing check for updates.
+cmi5launch_update_grades($cmi5launch, $USER->id);
 
-    header("Location: " . $location);
+// header("Location: " . $location);
 
-
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Launching CMI5 AU</title>
+</head>
+<body>
+    <script>
+        // Open the CMI5 AU in a new window
+        const launchURL = "<?php echo $location; ?>";
+        window.open(launchURL, '_blank', 'width=800,height=600');
+        
+        // Redirect the current window to a confirmation or course page
+        window.location.href = "<?php echo $CFG->wwwroot . '/mod/cmi5launch/view.php?id=' . $id; ?>";
+    </script>
+    <p>Launching the CMI5 AU in a new window. If the window does not open, please <a href="<?php echo $location; ?>" target="_blank">click here</a>.</p>
+</body>
+</html>
+<?php
 
 // Restore default handlers.
 restore_exception_handler();
