@@ -299,31 +299,7 @@ $savesession($sessionid, $location, $launchmethod);
 // Last thing check for updates.
 cmi5launch_update_grades($cmi5launch, $USER->id);
 
-if ($launchmethod === 'OwnWindow')
-{
-    header(header: "Location: " . $location);
-}
-else {
-    ?>
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Launching AU</title>
-    </head>
-    <body>
-        <script>
-            const launchURL = "<?php echo $location; ?>";
-            
-            // Decide whether to open in a new tab or the same window
-            window.open(launchURL, '_blank'); // Open in a new tab
-    
-            // Redirect back to the AU view page after launching the AU
-            window.location.href = "view.php?id=<?php echo $cm->id; ?>";
-        </script>
-        <p>Launching AU. If nothing happens, <a href="<?php echo $location; ?>" target="_blank">click here to open the AU</a>.</p>
-    <?php
-}
+header("Location: " . $location);
 
 
 
