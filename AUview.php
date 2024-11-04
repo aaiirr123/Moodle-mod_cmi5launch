@@ -94,18 +94,18 @@ echo $OUTPUT->header();
         //     }
         // }
 
-        // function launch_session(auid, restart) {
-        //     $('#launchform_registration').val(auid);
-        //     $('#launchform_restart').val(restart);
-        //     $('#launchform').submit();
-        // }
+        function launch_session(auid, restart) {
+            $('#launchform_registration').val(auid);
+            $('#launchform_restart').val(restart);
+            $('#launchform').submit();
+        }
 
         function launch_session(auid, restart) {
-            // Construct the URL with parameters
-            const url = `launch.php?launchform_registration=${encodeURIComponent(auid)}&restart=${encodeURIComponent(restart)}&id=<?php echo $id; ?>&n=<?php echo $n; ?>`;
+            // Construct the URL with parameters to launch.php
+            const url = `launch.php?launchform_registration=${encodeURIComponent(auid)}&restart=${encodeURIComponent(restart)}`;
             
-            // Open the URL in a new tab
-            window.open(url, '_blank');
+            // Open launch.php in the same window
+            window.location.href = url;
         }
 
 
