@@ -21,47 +21,61 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- namespace mod_cmi5launch\local;
- defined('MOODLE_INTERNAL') || die();
+namespace mod_cmi5launch\local;
 
- use mod_cmi5launch\local\cmi5launch_helpers;
+defined('MOODLE_INTERNAL') || die();
+
+use mod_cmi5launch\local\cmi5launch_helpers;
 // Include the errorover (error override) funcs.
-require_once ($CFG->dirroot . '/mod/cmi5launch/classes/local/errorover.php');
-class cmi5_connectors {
+require_once($CFG->dirroot . '/mod/cmi5launch/classes/local/errorover.php');
+class cmi5_connectors
+{
 
-    public function cmi5launch_get_create_tenant() {
+    public function cmi5launch_get_create_tenant()
+    {
         return [$this, 'cmi5launch_create_tenant'];
     }
-    public function cmi5launch_get_retrieve_token() {
+    public function cmi5launch_get_retrieve_token()
+    {
         return [$this, 'cmi5launch_retrieve_token'];
     }
-    public function cmi5launch_get_retrieve_url() {
+    public function cmi5launch_get_retrieve_url()
+    {
         return [$this, 'cmi5launch_retrieve_url'];
     }
-    public function cmi5launch_get_create_course() {
+    public function cmi5launch_get_create_course()
+    {
         return [$this, 'cmi5launch_create_course'];
     }
-    public function cmi5launch_get_session_info() {
-        return [$this, 'cmi5launch_retrieve_session_info_from_player'];
-
+    public function cmi5launch_get_delete_course()
+    {
+        return [$this, 'cmi5launch_delete_course'];
     }
-    public function cmi5launch_get_registration_with_post() {
+
+    public function cmi5launch_get_session_info()
+    {
+        return [$this, 'cmi5launch_retrieve_session_info_from_player'];
+    }
+    public function cmi5launch_get_registration_with_post()
+    {
         return [$this, 'cmi5launch_retrieve_registration_with_post'];
     }
-    public function cmi5launch_get_registration_with_get() {
+    public function cmi5launch_get_registration_with_get()
+    {
         return [$this, 'cmi5launch_retrieve_registration_with_get'];
     }
-    public function cmi5launch_get_send_request_to_cmi5_player_post() {
+    public function cmi5launch_get_send_request_to_cmi5_player_post()
+    {
         return [$this, 'cmi5launch_send_request_to_cmi5_player_post'];
-
     }
 
-    public function cmi5launch_get_send_request_to_cmi5_player_get() {
+    public function cmi5launch_get_send_request_to_cmi5_player_get()
+    {
         return [$this, 'cmi5launch_send_request_to_cmi5_player_get'];
-
     }
 
-    public function cmi5launch_get_connectors_error_message() {
+    public function cmi5launch_get_connectors_error_message()
+    {
         return [$this, 'cmi5launch_connectors_error_message'];
     }
 
@@ -72,10 +86,11 @@ class cmi5_connectors {
      * @param mixed $filename -- The filename of the course to be imported, to be added to url POST request.
      * @return bool|string - Response from cmi5 player.
      */
-    public function cmi5launch_create_course($id, $tenanttoken, $filename) {
+    public function cmi5launch_create_course($id, $tenanttoken, $filename)
+    {
 
         global $DB, $CFG;
-        
+
         $settings = cmi5launch_settings($id);
 
         // Build URL to import course to.
@@ -89,14 +104,14 @@ class cmi5_connectors {
         // So this one has some troubleshooting built in already, but we probably need to throw an exception to stop function or moodle will freak
 
         // Sends the stream to the specified URL.
-        $result = $this->cmi5launch_send_request_to_cmi5_player_post('cmi5launch_stream_and_send',$databody, $url, $filetype, $tenanttoken);
+        $result = $this->cmi5launch_send_request_to_cmi5_player_post('cmi5launch_stream_and_send', $databody, $url, $filetype, $tenanttoken);
 
         // Now this will never return false, it will throw an exception if it fails, so we can just return the result
         try {
             // Check result and display message if not 200.
             $resulttest = $this->cmi5launch_connectors_error_message($result, "creating the course");
 
-        //    echo "Is it resulting?";
+            //    echo "Is it resulting?";
             if ($resulttest == true) {
                 // Return an array with course info.
                 return $result;
@@ -109,11 +124,55 @@ class cmi5_connectors {
                 // But catch all else that miht go wrong
                 throw new playerException("creating the course.");
             }
-        }// catch all else that might go wrong
-        catch (\Throwable $e){
+        } // catch all else that might go wrong
+        catch (\Throwable $e) {
             throw new playerException("creating the course" . $e);
         }
-        
+    }
+
+    public function cmi5launch_delete_course($id, $tenanttoken)
+    {
+        global $DB, $USER, $CFG;
+
+        $record = $DB->get_record("cmi5launch", array('id' => $id));
+
+        $settings = cmi5launch_settings($id);
+
+        $userscourse = $DB->get_record('cmi5launch_usercourse', ['courseid'  => $record->courseid, 'userid'  => $USER->id]);
+
+        $playerurl = $settings['cmi5launchplayerurl'];
+        $courseid = $userscourse->courseid;
+
+
+        // Build URL for launch URL request.
+        $url = $playerurl . "/api/v1/course/" . $courseid;
+
+        // Sends the stream to the specified URL.
+        $result = $this->cmi5launch_send_request_to_cmi5_player_delete('cmi5launch_stream_and_send', $tenanttoken, $url);
+
+        // Now this will never return false, it will throw an exception if it fails, so we can just return the result
+        try {
+            echo "It worked?";
+            //     // Check result and display message if not 200.
+            //     $resulttest = $this->cmi5launch_connectors_error_message($result, "creating the course");
+
+            // //    echo "Is it resulting?";
+            //     if ($resulttest == true) {
+            //         // Return an array with course info.
+            //         return $result;
+            //         // I think this is the problem, it is coming back and throwing another error! I thought it would stop... do I need a kill in the error message hander?
+            //         // Its throwing BOB??? The third path is executing, THATS the problem!
+            //         // either way though, shouldn't the error funtion have ITS own test? like,
+            //         //  what we need to test here is is resulttrue is true or not
+            //     } else {
+            //         // This should never be false, it should throw an exception if it is, so we can just return the result
+            //         // But catch all else that miht go wrong
+            //         throw new playerException("creating the course.");
+            //     }
+        } // catch all else that might go wrong
+        catch (\Throwable $e) {
+            throw new playerException("creating the course" . $e);
+        }
     }
 
 
@@ -124,7 +183,8 @@ class cmi5_connectors {
      * @param $password - password.
      * @param $newtenantname - the name the new tenant will be, retreived from Tenant Name textbox.
      */
-    public function cmi5launch_create_tenant($newtenantname) {
+    public function cmi5launch_create_tenant($newtenantname)
+    {
 
         global $CFG, $cmi5launchid;
 
@@ -139,7 +199,8 @@ class cmi5_connectors {
 
         // The body of the request must be made as array first.
         $data = array(
-            'code' => $newtenantname);
+            'code' => $newtenantname
+        );
 
         // To determine the headers.
         $filetype = "json";
@@ -150,27 +211,26 @@ class cmi5_connectors {
         // Sends the stream to the specified URL.
         $result = $this->cmi5launch_send_request_to_cmi5_player_post('cmi5launch_stream_and_send', $data, $url, $filetype, $username, $password);
 
-      
+
         // Check result and display message if not 200.
         $resulttest = $this->cmi5launch_connectors_error_message($result, "creating the tenant");
-            // why is it coming back null and shouldnt we go to else the?
+        // why is it coming back null and shouldnt we go to else the?
 
-     
+
         // Now this will never return false, it will throw an exception if it fails, so we can just return the result
         try {
             if ($resulttest == true) {
-              
+
                 return $result;
             } else {
-              
+
                 throw new playerException("creating the tenant.");
             }
-        }// catch all else that might go wrong
-        catch (\Throwable $e){
-         
+        } // catch all else that might go wrong
+        catch (\Throwable $e) {
+
             throw new playerException("Uncaught error creating the tenant" . $e);
         }
-    
     }
 
     /**
@@ -180,7 +240,8 @@ class cmi5_connectors {
      * @param $registration - registration UUID
      * @param $id - cmi5 launch id
      */
-    public function cmi5launch_retrieve_registration_with_get($registration, $id) {
+    public function cmi5launch_retrieve_registration_with_get($registration, $id)
+    {
 
         $settings = cmi5launch_settings($id);
 
@@ -197,21 +258,20 @@ class cmi5_connectors {
 
         // Check result and display message if not 200.
         $resulttest = $this->cmi5launch_connectors_error_message($result, "retrieving the registration");
-       
+
         // Now this will never return false, it will throw an exception if it fails, so we can just return the result
         try {
             if ($resulttest == true) {
                 return $result;
             } else {
-               
+
                 throw new playerException("retrieving the registration information.");
             }
-        }// catch all else that might go wrong
-        catch (\Throwable $e){
-       
+        } // catch all else that might go wrong
+        catch (\Throwable $e) {
+
             throw new playerException("Uncaught error retrieving the registration information." . $e);
         }
-
     }
 
     /**
@@ -222,7 +282,8 @@ class cmi5_connectors {
      * @param $courseid - course id - The course ID in the CMI5 player.
      * @param $id - the course id in MOODLE.
      */
-    public function cmi5launch_retrieve_registration_with_post($courseid, $id) {
+    public function cmi5launch_retrieve_registration_with_post($courseid, $id)
+    {
 
         global $USER;
 
@@ -262,7 +323,7 @@ class cmi5_connectors {
         // Now this will never return false, it will throw an exception if it fails, so we can just return the result
         try {
             if ($resulttest == true) {
-                    
+
                 $registrationinfo = json_decode($result, true);
 
                 // The returned 'registration info' is a large json object.
@@ -273,12 +334,11 @@ class cmi5_connectors {
             } else {
                 throw new playerException("retrieving the registration information.");
             }
-        }// catch all else that might go wrong
-        catch (\Throwable $e){
-       
+        } // catch all else that might go wrong
+        catch (\Throwable $e) {
+
             throw new playerException("Uncaught error retrieving the registration information." . $e);
         }
-
     }
 
     /**
@@ -289,12 +349,13 @@ class cmi5_connectors {
      * @param $audience - the name the of the audience using the token,
      * @param #tenantid - the id of the tenant
      */
-    public function cmi5launch_retrieve_token($audience, $tenantid) {
+    public function cmi5launch_retrieve_token($audience, $tenantid)
+    {
 
         // Honestly the params can be rabbbed through settings right? So I thinks we can change this whole func.
         // but if it is called, will it need to go tooo secret back page? 
         // and can we make it same page, like if pthere is no prompt? which is fdiff then null right? Or maybe another page just to be certain.
-        
+
         global $CFG, $cmi5launchid;
 
         $settings = cmi5launch_settings($cmi5launchid);
@@ -326,17 +387,16 @@ class cmi5_connectors {
         // Now this will never return false, it will throw an exception if it fails, so we can just return the result
         try {
             if ($resulttest == true) {
-            
+
                 $resultDecoded = json_decode($result, true);
                 $token = $resultDecoded['token'];
-                
-                return $token;
 
+                return $token;
             } else {
                 throw new playerException("retrieving the tenant token.");
             }
-        }// catch all else that might go wrong
-        catch (\Throwable $e){
+        } // catch all else that might go wrong
+        catch (\Throwable $e) {
             throw new playerException("Uncaught error retrieving the tenant token." . $e);
         }
     }
@@ -346,7 +406,8 @@ class cmi5_connectors {
      * @param $id - courses's ID in MOODLE to retrieve corect record.
      * @param $auindex -AU's index to send to request for launch url.
      */
-    public function cmi5launch_retrieve_url($id, $auindex) {
+    public function cmi5launch_retrieve_url($id, $auindex)
+    {
 
         global $DB, $USER;
 
@@ -366,9 +427,9 @@ class cmi5_connectors {
         $playerurl = $settings['cmi5launchplayerurl'];
         $courseid = $userscourse->courseid;
 
-    
+
         // Build URL for launch URL request.
-        $url = $playerurl . "/api/v1/course/" . $courseid  ."/launch-url/" . $auindex;
+        $url = $playerurl . "/api/v1/course/" . $courseid  . "/launch-url/" . $auindex;
 
         $data = array(
             'actor' => array(
@@ -394,20 +455,18 @@ class cmi5_connectors {
 
         // Now this will never return false, it will throw an exception if it fails, so we can just return the result
         try {
-        if ($resulttest == true) {
-            // Only return the URL.
-            $urldecoded = json_decode($result, true);
+            if ($resulttest == true) {
+                // Only return the URL.
+                $urldecoded = json_decode($result, true);
 
-            return $urldecoded;
-        } else {
-            throw new playerException("retrieving the launch url from player.");
+                return $urldecoded;
+            } else {
+                throw new playerException("retrieving the launch url from player.");
+            }
+        } // catch all else that might go wrong
+        catch (\Throwable $e) {
+            throw new playerException("Uncaught error retrieving the launch url from player." . $e);
         }
-    }// catch all else that might go wrong
-    catch (\Throwable $e){
-        throw new playerException("Uncaught error retrieving the launch url from player." . $e);
-    }
-
-
     }
 
     /**
@@ -418,11 +477,12 @@ class cmi5_connectors {
      * @param ...$tokenorpassword is a variable length param. If one is passed, it is $token, if two it is $username and $password.
      * @return - $result is the response from cmi5 player.
      */
-    public function cmi5launch_send_request_to_cmi5_player_post($cmi5launch_stream_and_send, $databody, $url, $filetype, ...$tokenorpassword) {
+    public function cmi5launch_send_request_to_cmi5_player_post($cmi5launch_stream_and_send, $databody, $url, $filetype, ...$tokenorpassword)
+    {
 
-         // Set error and exception handler to catch and override the default PHP error messages, to make messages more user friendly.
-         set_error_handler('mod_cmi5launch\local\sifting_data_warning', E_WARNING);
-         set_exception_handler('mod_cmi5launch\local\exception_au');
+        // Set error and exception handler to catch and override the default PHP error messages, to make messages more user friendly.
+        set_error_handler('mod_cmi5launch\local\sifting_data_warning', E_WARNING);
+        set_exception_handler('mod_cmi5launch\local\exception_au');
 
         try {
 
@@ -454,7 +514,7 @@ class cmi5_connectors {
                         'header' => array(
                             'Authorization: Basic ' . base64_encode("$username:$password"),
                             "Content-Type: " . $contenttype .
-                            "Accept: " . $contenttype
+                                "Accept: " . $contenttype
                         ),
                         'content' => ($databody),
                     ),
@@ -482,7 +542,7 @@ class cmi5_connectors {
                         'header' => array(
                             "Authorization: Bearer " . $token,
                             "Content-Type: " . $contenttype .
-                            "Accept: " . $contenttype
+                                "Accept: " . $contenttype
                         ),
                         'content' => ($databody),
                     ),
@@ -503,16 +563,14 @@ class cmi5_connectors {
 
             // Return response.
             return $result;
+        } catch (\Throwable $e) {
 
-        }catch(\Throwable $e) {  
-            
             // Restore default hadlers.
             restore_exception_handler();
             restore_error_handler();
             //
             throw new playerException("communicating with player, sending or crafting a POST request: " . $e);
         }
-        
     }
 
     /**
@@ -521,20 +579,23 @@ class cmi5_connectors {
      * @param $url - The URL the request will be sent to.
      * @return - $sessionDecoded is the response from cmi5 player.
      */
-    public function cmi5launch_send_request_to_cmi5_player_get($cmi5launch_stream_and_send, $token, $url) {
-        
+    public function cmi5launch_send_request_to_cmi5_player_get($cmi5launch_stream_and_send, $token, $url)
+    {
+
         $stream = $cmi5launch_stream_and_send;
         // Use key 'http' even if you send the request to https://...
         // There can be multiple headers but as an array under the ONE header
         // content(body) must be JSON encoded here, as that is what CMI5 player accepts
         // JSON_UNESCAPED_SLASHES used so http addresses are displayed correctly.
-        $options = array (
-            'http' => array (
+        $options = array(
+            'http' => array(
                 'method'  => 'GET',
                 'ignore_errors' => true,
-                'header' => array ("Authorization: Bearer ". $token,
+                'header' => array(
+                    "Authorization: Bearer " . $token,
                     "Content-Type: application/json\r\n" .
-                    "Accept: application/json\r\n"),
+                        "Accept: application/json\r\n"
+                ),
             ),
         );
 
@@ -545,10 +606,39 @@ class cmi5_connectors {
 
             // Return response.
             return $result;
-
         } catch (\Throwable $e) {
-          //  echo" are we here?";
+            //  echo" are we here?";
             throw new playerException("communicating with player, sending or crafting a GET request: " . $e);
+        }
+    }
+
+    public function cmi5launch_send_request_to_cmi5_player_delete($cmi5launch_stream_and_send, $token, $url)
+    {
+        // Stream function for handling the HTTP request
+        $stream = $cmi5launch_stream_and_send;
+
+        // HTTP context options for DELETE request
+        $options = array(
+            'http' => array(
+                'method'  => 'DELETE', // Change to DELETE
+                'ignore_errors' => true,
+                'header' => array(
+                    "Authorization: Bearer " . $token,
+                    "Content-Type: application/json\r\n" .
+                        "Accept: application/json\r\n"
+                ),
+            ),
+        );
+
+        try {
+            // Call the provided stream function with the constructed options and URL
+            $result = call_user_func($stream, $options, $url);
+
+            // Return the response
+            return $result;
+        } catch (\Throwable $e) {
+            // Throw an exception if the DELETE request fails
+            throw new playerException("Error communicating with player while sending a DELETE request: " . $e->getMessage());
         }
     }
 
@@ -558,7 +648,8 @@ class cmi5_connectors {
      * @param mixed $id - cmi5 id
      * @return mixed $sessionDecoded - the session info from cmi5 player.
      */
-    public function cmi5launch_retrieve_session_info_from_player($sessionid, $id) {
+    public function cmi5launch_retrieve_session_info_from_player($sessionid, $id)
+    {
 
         global $DB;
 
@@ -576,18 +667,17 @@ class cmi5_connectors {
         // Check result and display message if not 200.
         $resulttest = $this->cmi5launch_connectors_error_message($result, "retrieving the session information.");
 
-           // Now this will never return false, it will throw an exception if it fails, so we can just return the result
-           try {
+        // Now this will never return false, it will throw an exception if it fails, so we can just return the result
+        try {
             if ($resulttest == true) {
 
                 return $result;
-
             } else {
                 throw new playerException("retrieving the session information.");
             }
-        }// catch all else that might go wrong
-        catch (\Throwable $e){
-          
+        } // catch all else that might go wrong
+        catch (\Throwable $e) {
+
             throw new playerException("Uncaught error retrieving the session information." . $e);
         }
     }
@@ -601,9 +691,10 @@ class cmi5_connectors {
      * @param string $type - The type missing to be added to the error message.
      * @return bool
      */
-    public  function cmi5launch_connectors_error_message($resulttotest, $type) {
-       
-    
+    public  function cmi5launch_connectors_error_message($resulttotest, $type)
+    {
+
+
         // Decode result because if it is not 200 then something went wrong
         // If it's a string, decode it.
         if (is_string($resulttotest)) {
@@ -614,29 +705,25 @@ class cmi5_connectors {
 
         // I think splittin these to return two seperate messages deppennnding on whether player is running is better.
         // Player cannot return an error if not runnin,
-        if ($resulttest === false ){
+        if ($resulttest === false) {
 
-           
+
             $errormessage =  $type . " CMI5 Player is not communicating. Is it running?";
 
             throw new playerException($errormessage);
-        }
-        else if( array_key_exists("statusCode", $resulttest) && $resulttest["statusCode"] != 200) {
+        } else if (array_key_exists("statusCode", $resulttest) && $resulttest["statusCode"] != 200) {
 
-       
-            $errormessage = $type . " CMI5 Player returned " . $resulttest["statusCode"] . " error. With message '" 
-            . $resulttest["message"] . "'." ;
 
-         //   echo"whatt is error messae before throwing::: " . $errormessage;
-          //  echo" what is error messae: " . $errormessage;"";
+            $errormessage = $type . " CMI5 Player returned " . $resulttest["statusCode"] . " error. With message '"
+                . $resulttest["message"] . "'.";
+
+            //   echo"whatt is error messae before throwing::: " . $errormessage;
+            //  echo" what is error messae: " . $errormessage;"";
             throw new playerException($errormessage);
-        
         } else {
-              // No errors, continue.
-        
+            // No errors, continue.
+
             return true;
         }
     }
-
-
 }
